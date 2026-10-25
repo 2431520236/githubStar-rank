@@ -130,7 +130,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="GitHub 飙升雷达", version="1.0.0",
-              description="GitHub 项目数据大屏 + 榜单 + AI 概要(复刻实现)", lifespan=lifespan)
+              description="GitHub 项目数据大屏 + 榜单 + AI 概要(自托管实现)", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

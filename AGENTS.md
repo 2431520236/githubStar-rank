@@ -1,61 +1,51 @@
-# githubstar 项目约束（AGENTS）
+# AGENTS · 项目约束与开发约定
 
-## ⛔ 最高优先级：禁止擅自变更 9951 线上服务
+面向在本仓库里干活的自动化代理：动手前先读这里，改完按对应文档自检。
 
-来源：用户 2026-10-21 强令，原话「绝对禁止擅自修改变更 9951 服务的东西」。
+## 1. 项目是什么
 
-适用范围：**任何**涉及 9951 服务与 `ghradar-db`（54321）的操作，包括但不限于：
+自托管的 GitHub 榜单大屏：**FastAPI + PostgreSQL 15 + Docker Compose**，前端 Vue 3 零构建。
+同步仓库 star 历史 → 算日/周/月/总榜 → 用自配模型生成中文概要 → 暗色数据大屏展示。
 
-- `docker compose down` / `up` / `restart` / `recreate`
-- `docker volume rm githubstar_ghradar_pgdata`（**已发生事故：删卷导致数据丢失**）
-- `DROP DATABASE` / `CREATE DATABASE` / 批量导入 SQL 到线上库
-- 修改 `docker-compose.yml`、`.env`、`server/` 下任何被挂载进容器的文件
+## 2. 文档索引
 
-规则：
+| 文档 | 内容 |
+|---|---|
+| `README.md` | 项目介绍、界面预览、两周 TOP25、快速开始、关键词 |
+| `docs/安装部署与初始化数据.md` | 部署四步、数据从哪来、验证清单、备份回滚、上线与反代、多实例、排错 |
+| `docs/系统设计.md` | 架构 / 表结构 / 接口 / 采集机制 / 前端实现 |
+| `docs/数据来源与采集详解.md` | 数据源与采集链路 |
+| `docs/性能优化与缓存策略.md` | 三层缓存与运行时开关 |
+| `docs/sql/README.md` | SQL 资料包规范与导入顺序 |
+| `docs/GitHub-Token-指南.md` | Token 申请与额度 |
 
-1. 9951 是用户正在使用的线上环境，**只读查看可以做**（curl 接口、psql SELECT、docker ps），**任何写/重启/重建必须先获得用户明确同意**。
-2. 要在别的端口试部署：**另建独立目录 + 独立 compose 项目名（-p）+ 独立数据卷名 + 独立端口**，不得复用 `ghradar-db`/`ghradar-api` 容器名、不得复用 `githubstar_ghradar_pgdata` 卷、不得复用 9951/54321 端口。
-3. 严禁对线上数据卷执行任何 `rm`/`prune`/`down -v` 类操作。
-4. 动数据库前先确认有可用备份，并记录备份路径与时间点。
+## 3. 分层铁律
 
-## 9952 隔离实例（2026-10-21 建立）
+**Controller 不写 SQL，Service 不碰 HTTP。** 采集层只负责拉取与限速，业务规则放 Service 层。
 
-- 目录：`githubstar-9952/`（独立代码副本，改动不互通）
-- 启动：`docker compose -p githubstar9952 up -d`
-- 端口：api **9952**、db **54322**；容器 `ghradar-api-9952` / `ghradar-db-9952`
-- 数据卷：`ghradar_pgdata_9952`（与线上 `githubstar_ghradar_pgdata` 无关）
-- 该实例 `GH_GITHUB_TOKEN` 为空、无 `llm_config.json`、调度器关闭 → 不消耗配额
+## 4. 数据安全红线（最高优先级）
 
-**隔离验证方法**（每次都跑，别只靠口头）：
+1. **已上线实例只读**：容器 `ghradar-api` / `ghradar-db`、数据卷 `githubstar_ghradar_pgdata`、端口 `9951` / `54321`。查看类操作（`curl`、`psql SELECT`、`docker ps`）随便做；**任何写、重启、重建、删卷，必须先拿到用户明确同意**。本仓库历史上发生过「删卷导致数据丢失」事故。
+2. **业务表严禁 DROP / DELETE / UPDATE**：`gh_repo`、`gh_repo_star_daily`、`gh_repo_star_weekly`、`gh_rank_snapshot`、`gh_stat_period`。只允许改配置表（`gh_app_setting` 等）。
+3. 动数据库前先确认有可用备份，并记录备份路径与时间点。
+4. 严禁 `docker compose down -v`、`docker volume rm`、`--volumes` 类操作。
+
+## 5. 公开与合规红线
+
+本仓库对外公开。**禁止出现公司内网域名关键字、以及公司内网网段地址（10 点 192 段）**。为不把这些原文写进仓内，扫描命令用引号拆写（shell 会自动拼回完整词）：
 
 ```bash
-docker ps --format '{{.Names}}\t{{.Label "com.docker.compose.project"}}\t{{.Ports}}' | grep ghradar
-docker volume ls | grep ghradar
-curl -s localhost:9951/api/stats/screen | grep -o '"history_done":[0-9]*'
-curl -s localhost:9952/api/stats/screen | grep -o '"history_done":[0-9]*'   # 9951=4084 / 9952=0 → 各读各库
+git ls-files -z | xargs -0 grep -lIi 'z''te'          # 内网域名关键字
+git ls-files -z | xargs -0 grep -lI '10''\.192\.'     # 内网网段
 ```
 
-## 公开与合规红线（2026-10-26 用户强制）
+两条都必须 **0 命中**。注意 `server/data/*.tsv` 里偶有第三方 GitHub 组织名**恰好包含该关键字片段**（如某向量库组织名），属业务数据，不算违规、**禁止改动**；真正的违规是域名 / 主机名形态。
 
-- 本仓库对外公开（github.com/2431520236/githubstar-rank）。**禁止出现任何 `zte` 相关字样**（域名、路径、代理、注释均含）、**禁止出现任何 `10.192.*` 内网地址**。改动后必须复扫：
-  `git ls-files -z | xargs -0 grep -lIi 'zte'` 与 `grep -rIil '10\.192\.[0-9]'`，必须 0 命中。
-- 代理是允许的功能，但取值默认留空；**代理策略：显式 `GH_PROXY` > 系统/环境变量（`HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY`/`NO_PROXY`）> 直连**。实现见 `server/app/collectors/github_client.py`（`trust_env` 保持默认 True，显式配置写入 `session.proxies`）。
-- 数据库只允许改配置表（`gh_app_setting` 等）；**业务表（`gh_repo`/`gh_repo_star_daily`/`gh_repo_star_weekly`/`gh_rank_snapshot`/`gh_stat_period`）严禁 DROP/DELETE/UPDATE**。
+**代理**是允许的功能，取值默认留空，优先级：**显式 `GH_PROXY` > 系统 / 环境变量（`HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY`/`NO_PROXY`）> 直连**。实现见 `server/app/collectors/github_client.py`（`trust_env` 保持默认 True，显式配置写入 `session.proxies`）。
 
-## 备份与恢复
+## 6. 多实例隔离
 
+要另起一套实例用 `scripts/deploy-instance.sh`：目录、compose 项目名（`-p`）、容器名、数据卷名、端口**全部独立**。
 
-- 现有备份：`bark/githubstar_backup/star_backup_before_pool_20261014_161438.sql.gz`（130MB，含 gh_repo 72 万 / star_daily 125 万 / star_weekly 23 万 / rank_snapshot 16 万 / stat_period 59）
-- 恢复方式：建空库 → `zcat 备份 | psql -U postgres -d github` → `psql -f docs/sql/01-schema.sql` 补建其余 11 张表
-
-## 数据规模基线（2026-10-14 备份）
-
-| 表 | 行数 |
-|---|---|
-| gh_repo | 721,562 |
-| gh_repo_star_daily | 1,255,674 |
-| gh_repo_star_weekly | 233,922 |
-| gh_rank_snapshot | 165,949 |
-| gh_stat_period | 59 |
-
-注：`docs/sql/4-1~4-10` 种子只有 52,736 行，是旧快照，**不代表线上真实规模**。
+- 不得复用已有容器名 / 数据卷 / 端口 —— 同名容器会互相顶掉，共用卷会让两套写同一份库。
+- 不要在已有实例目录里裸跑 `docker compose up -d`（会按目录名落到默认项目名，可能顶掉已有容器）。

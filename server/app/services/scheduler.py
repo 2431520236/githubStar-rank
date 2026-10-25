@@ -6,7 +6,7 @@
 import logging
 import threading
 import time
-from datetime import datetime, time as dtime
+from datetime import datetime, time as dtime, timedelta
 from typing import Callable, Optional
 
 from .. import config as cfg
@@ -21,6 +21,13 @@ log = logging.getLogger("ghradar.scheduler")
 #   **没 token 也必须能跑** —— 服务/页面/库里的 SQL 数据全部照常展示,
 #   只是这些任务不执行或立即跳过, 不报错、不刷屏, 由页面顶栏提示去配 token。
 TOKEN_TASKS = ("collect_detail", "collect_history", "backfill")
+
+
+def _naive_local(dt: Optional[datetime]) -> Optional[datetime]:
+    """把 DB(timestamptz) 返回的感知时间转成本地 naive, 与 datetime.now() 同型可减。"""
+    if dt is not None and dt.tzinfo is not None:
+        return dt.astimezone().replace(tzinfo=None)
+    return dt
 
 
 def _setting(key: str, default=None):
@@ -44,6 +51,7 @@ class Scheduler:
         self.last_run: dict[str, Optional[datetime]] = {}
         self.last_result: dict[str, str] = {}
         self._token_noted: set[str] = set()
+        self._last_stats: dict[str, dict] = {}
         self.tasks = self._build_tasks()
 
     # ---------------- 任务定义 ----------------
@@ -86,11 +94,24 @@ class Scheduler:
             self._thread.join(timeout=3)
 
     def _restore_last_run(self) -> None:
+        # 饿死修复(2026-10-26): gh_job_log 空时 last_run_at 恒 None, 而 _every 把 None
+        # 判成「永远不到期」→ collect_history / rollup / collect_detail / backfill /
+        # watch_check 一次都不跑(9951 实测连续 3 天零任务、0 条 job_log)。
+        # last_run 本来就只在内存、重启即丢, 这里按各自间隔回拨成「已到期」,
+        # 让任务在启动后的后续 tick 正常补跑; 跨重启的持久化由 _log_run 写 gh_job_log 完成。
+        now = datetime.now()
+        interval = {"collect_history": 3600, "watch_check": 600}
         for t in self.tasks:
+            name = t["name"]
             try:
-                self.last_run[t["name"]] = job_service.last_run_at(t["name"])
+                self.last_run[name] = _naive_local(job_service.last_run_at(name))
             except Exception:  # noqa: BLE001
-                self.last_run[t["name"]] = None
+                self.last_run[name] = None
+            if self.last_run[name] is None:
+                if name in ("daily_rank", "weekly_rank"):
+                    continue  # _at_daily 对 None 判「到期」, 本来就会跑
+                sec = interval.get(name, 86400)
+                self.last_run[name] = now - timedelta(seconds=sec)
 
     def _loop(self) -> None:
         while not self._stop.is_set():
@@ -148,6 +169,8 @@ class Scheduler:
 
     @staticmethod
     def _every(last: Optional[datetime], now: datetime, seconds: int) -> bool:
+        last = _naive_local(last)  # gh_job_log.started_at 是 timestamptz → 感知时间;
+        # now() 是 naive —— 直接相减抛 TypeError(2026-10-26 实测: 表里有行后调度循环每 tick 崩)
         if last is None:
             return False  # 启动后不立刻跑,等第一轮间隔
         return (now - last).total_seconds() >= seconds
@@ -174,11 +197,13 @@ class Scheduler:
             try:
                 res = runner()
                 self.last_result[name] = "ok" if not (isinstance(res, dict) and res.get("failed")) else "partial"
+                self._last_stats[name] = res if isinstance(res, dict) else {}
             except Exception as e:  # noqa: BLE001
                 self.last_result[name] = f"failed: {e}"
                 log.error("调度任务 %s 失败: %s", name, e)
             finally:
                 self.last_run[name] = datetime.now()
+                self._log_run(name, trigger)
                 with self._lock:
                     self._running.discard(name)
                 # 任务结束 → 清一次页面查询缓存(用户 2026-10 口径: 任务跑完清一次即可)
@@ -189,6 +214,24 @@ class Scheduler:
 
         threading.Thread(target=wrap, name=f"sched-{name}", daemon=True).start()
         return True
+
+    def _log_run(self, name: str, trigger: str) -> None:
+        """把一次调度执行落到 gh_job_log —— last_run_at() 靠它跨重启记住「上次跑过」,
+        否则调度器任务(不走 job_service.job 的 collect_detail/rollup/daily_rank 等)
+        在日志表里永远无行, 重启后又可能被判回「从未执行」。失败不致命, 吞异常。"""
+        res = self.last_result.get(name) or ""
+        status = "success" if res.startswith("ok") else ("failed" if res.startswith("failed") else "partial")
+        st = self._last_stats.get(name) or {}
+        try:
+            db.execute(
+                "INSERT INTO gh_job_log (job_name, trigger_type, status, total, succeeded, failed, "
+                "duration_ms, message, stats, started_at, finished_at) "
+                "VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, now(), now())",
+                [name, trigger, status,
+                 as_int(st.get("total", 0)), as_int(st.get("ok", st.get("succeeded", 0))),
+                 as_int(st.get("failed", 0)), res[:500], db.Json(st)])
+        except Exception:  # noqa: BLE001
+            log.warning("写调度日志失败: %s", name)
 
     def run_task_now(self, name: str) -> dict:
         task = next((t for t in self.tasks if t["name"] == name), None)
@@ -265,7 +308,7 @@ class Scheduler:
     def _collect_history(self) -> dict:
         from ..collectors import history_collector
         # 距上次 >1 天才拉;>2 天立即拉
-        last = job_service.last_run_at("collect_history")
+        last = _naive_local(job_service.last_run_at("collect_history"))
         if last is not None:
             days = (datetime.now() - last).total_seconds() / 86400
             if days < 1:
