@@ -60,6 +60,7 @@ HISTORY_POOL_TOP_N = _int("GH_HISTORY_POOL_TOP_N", 2000)
 # ---------------- GitHub 采集 ----------------
 API_BASE = os.getenv("GH_API_BASE", "https://api.github.com")
 GITHUB_TOKEN = os.getenv("GH_GITHUB_TOKEN", "")
+PROXY = os.getenv("GH_PROXY", "")
 CONCURRENCY = _int("GH_CONCURRENCY", 6)
 REQUEST_TIMEOUT = _int("GH_REQUEST_TIMEOUT", 25)
 MAX_RETRIES = _int("GH_MAX_RETRIES", 3)
@@ -140,6 +141,7 @@ def as_dict() -> dict:
         "collect": {
             "api_base": API_BASE,
             "token_configured": bool(GITHUB_TOKEN),
+            "proxy": PROXY,
             "concurrency": CONCURRENCY,
             "request_timeout": REQUEST_TIMEOUT,
             "max_retries": MAX_RETRIES,

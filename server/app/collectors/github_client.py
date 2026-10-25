@@ -102,10 +102,11 @@ def _next_link(link_header: str) -> Optional[str]:
 
 
 class GitHubClient:
-    """GitHub API 客户端。每线程独立 Session。"""
+    """GitHub API 客户端。每线程独立 Session,屏蔽环境代理。"""
 
-    def __init__(self, token: Optional[str] = None) -> None:
+    def __init__(self, token: Optional[str] = None, proxy: Optional[str] = None) -> None:
         self.token = token if token is not None else cfg.GITHUB_TOKEN
+        self.proxy = proxy if proxy is not None else cfg.PROXY
         self._local = threading.local()
 
     @property
@@ -113,7 +114,7 @@ class GitHubClient:
         s = getattr(self._local, "session", None)
         if s is None:
             s = requests.Session()
-            s.trust_env = False  # 始终直连,忽略环境变量中的代理设置
+            s.trust_env = False  # 屏蔽环境 all_proxy 干扰
             s.headers.update({
                 "Accept": "application/vnd.github+json",
                 "X-GitHub-Api-Version": "2022-11-28",
@@ -123,6 +124,9 @@ class GitHubClient:
                 s.headers["Authorization"] = f"Bearer {self.token}"
             self._local.session = s
         return s
+
+    def _proxies(self) -> Optional[dict]:
+        return {"http": self.proxy, "https": self.proxy} if self.proxy else None
 
     def raw(self, method: str, url: str, params: Optional[dict] = None,
             max_retries: Optional[int] = None, absolute: bool = True,
@@ -144,7 +148,7 @@ class GitHubClient:
         for attempt in range(max(1, retries)):
             try:
                 r = self.session.request(method, url, params=params, timeout=cfg.REQUEST_TIMEOUT,
-                                         verify=False, headers=headers)
+                                         proxies=self._proxies(), verify=False, headers=headers)
             except Exception as e:  # noqa: BLE001
                 if attempt < retries - 1:
                     time.sleep(min(5 * (2 ** attempt), 60) + random.uniform(0, 1))
@@ -188,7 +192,7 @@ class GitHubClient:
         for name in ("README.md", "README.MD", "README.rst", "readme.md", "README"):
             url = f"{RAW}/{full_name}/{branch}/{name}"
             try:
-                r = self.session.get(url, timeout=cfg.REQUEST_TIMEOUT,
+                r = self.session.get(url, timeout=cfg.REQUEST_TIMEOUT, proxies=self._proxies(),
                                      verify=False)
                 if r.status_code == 200 and r.text:
                     return r.text

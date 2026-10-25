@@ -6,6 +6,7 @@ COPY gh_app_setting ("key", "value", "description", "updated_at") FROM stdin;
 collect.api_base	"https://api.github.com"	GitHub API 基址	2026-10-22 05:47:52.445043+00
 collect.concurrency	6	GitHub API 采集并发线程数	2026-10-22 05:47:52.445043+00
 collect.history_top_n	200	历史 star 采集默认处理的仓库数	2026-10-22 05:47:52.445043+00
+collect.proxy	""	外网代理(空=直连)	2026-10-22 05:47:52.445043+00
 collect.token	""	GitHub Token(空=匿名, 限速 60/小时)	2026-10-22 05:47:52.445043+00
 filter.default_min_stars	50	默认过滤:star 下限	2026-10-22 05:47:52.445043+00
 filter.hide_major	false	默认过滤:是否隐藏熟知名单项目	2026-10-22 05:47:52.445043+00
@@ -25,8 +26,8 @@ COPY gh_llm_task ("id", "task_key", "name", "description", "task_type", "system_
 \.
 
 -- ===== gh_llm_provider (1 行) =====
-COPY gh_llm_provider ("id", "name", "provider_type", "base_url", "api_key", "api_prefix", "headers", "timeout_s", "max_retries", "enabled", "is_default", "remark", "created_at", "updated_at") FROM stdin;
-8	llm_gateway	openai_response	http://127.0.0.1:28080	REPLACE_WITH_REAL_KEY	/v1	{}	120	2	t	f	\N	2026-10-22 05:50:31.377048+00	2026-10-22 05:50:31.377048+00
+COPY gh_llm_provider ("id", "name", "provider_type", "base_url", "api_key", "api_prefix", "headers", "proxy", "timeout_s", "max_retries", "enabled", "is_default", "remark", "created_at", "updated_at") FROM stdin;
+8	llm_proxy	openai_response	http://127.0.0.1:28080	REPLACE_WITH_REAL_KEY	/v1	{}		120	2	t	f	\N	2026-10-22 05:50:31.377048+00	2026-10-22 05:50:31.377048+00
 \.
 
 -- ===== gh_llm_model (5 行) =====
