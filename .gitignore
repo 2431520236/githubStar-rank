@@ -1,0 +1,39 @@
+# ---- 敏感信息：绝不提交 ----
+.env
+.env.*
+!.env.example
+server/data/llm_config.json
+server/data/*.bak
+*.pem
+*.key
+
+# ---- 数据库备份 / 转储 ----
+*.sql.gz
+*.dump
+backup_*.sql
+pgdata/
+
+# ---- 运行产物 ----
+server/data/*.log
+logs/
+*.log
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- 本地测试部署目录（隔离实例，不属于源码） ----
+test-deploy/
+githubstar-9952/
+
+# ---- 大数据包 / 备份（GitHub 单文件 100MB 硬限制）----
+backups/
+docs/sql/20-*.sql
+docs/sql/30-*.sql
+docs/sql/35-*.sql

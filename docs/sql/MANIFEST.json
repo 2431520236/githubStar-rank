@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-10-22T15:03:49",
+  "profile": "full",
+  "chunk_rows": 200000,
+  "source": {
+    "db": "github",
+    "server": "db"
+  },
+  "tables": {
+    "_10-config": {
+      "rows": 47,
+      "tables": [
+        {
+          "table": "gh_app_setting",
+          "rows": 12,
+          "md5": "d567b1f53ace58fbbb3e1dce815aa397"
+        },
+        {
+          "table": "gh_llm_task",
+          "rows": 4,
+          "md5": "67b893c87efcfc00aee6c428d5c25b42"
+        },
+        {
+          "table": "gh_llm_provider",
+          "rows": 1,
+          "md5": "f28df3364968de0cfb7d943d7666af48"
+        },
+        {
+          "table": "gh_llm_model",
+          "rows": 5,
+          "md5": "6ed25d64b7b0837c897e02e4dc0d4a2c"
+        },
+        {
+          "table": "gh_rank_whitelist",
+          "rows": 25,
+          "md5": "18c27ae265426ed1ae5e59c49ca8a612"
+        }
+      ]
+    },
+    "gh_repo": {
+      "rows": 721562,
+      "exported": 721562,
+      "md5": "bf1ef88d2318205a785a25527e7c75e7",
+      "files": [
+        "20-repo-001.sql",
+        "20-repo-002.sql",
+        "20-repo-003.sql",
+        "20-repo-004.sql"
+      ]
+    },
+    "_25-watch": {
+      "rows": 1,
+      "tables": [
+        {
+          "table": "gh_watch_target",
+          "rows": 1,
+          "md5": "20a86363d2b80cb5cd8362d6ff057fbf"
+        }
+      ]
+    },
+    "gh_repo_star_weekly": {
+      "rows": 233922,
+      "exported": 233922,
+      "md5": "53021d9a2315d6deee21d120e2423d75",
+      "files": [
+        "30-weekly-001.sql",
+        "30-weekly-002.sql"
+      ]
+    },
+    "gh_repo_star_daily": {
+      "rows": 1255674,
+      "exported": 1255674,
+      "md5": "18a603aa9113ea3064b3121904d65398",
+      "files": [
+        "35-daily-001.sql",
+        "35-daily-002.sql",
+        "35-daily-003.sql",
+        "35-daily-004.sql",
+        "35-daily-005.sql",
+        "35-daily-006.sql",
+        "35-daily-007.sql"
+      ]
+    }
+  }
+}

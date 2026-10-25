@@ -1,0 +1,120 @@
+# GitHub 飙升雷达 · Docker Compose
+# 一键启动：docker compose up -d
+# 端口：API 9951（可用 .env 的 GH_PORT 覆盖）、PostgreSQL 54321（GH_DB_PORT_HOST）
+
+services:
+  # 数据库 - PostgreSQL 15
+  db:
+    image: postgres:15
+    container_name: ghradar-db-9952
+    command: >
+      postgres
+      -c shared_buffers=1GB
+      -c effective_cache_size=3GB
+      -c work_mem=16MB
+      -c maintenance_work_mem=256MB
+      -c max_connections=100
+      -c random_page_cost=1.1
+      -c log_min_duration_statement=1000
+    environment:
+      POSTGRES_USER: ${GH_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${GH_DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${GH_DB_NAME:-github}
+      TZ: Asia/Shanghai
+      PGTZ: Asia/Shanghai
+    volumes:
+      # 持久化数据卷（删卷 = 删库，务必先备份）
+      - ghradar_pgdata_9952:/var/lib/postgresql/data
+      # SQL 资料包（只读）
+      - ./docs/sql:/seed:ro
+      # 首次初始化脚本：容器**只在数据卷为空时**执行一次
+      - ./deploy/initdb:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${GH_DB_PORT_HOST:-54321}:5432"
+    # 健康检查：等待 initdb 完成 (检查哨兵文件)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GH_DB_USER:-postgres} -d ${GH_DB_NAME:-github} -q && test -f /var/lib/postgresql/data/.init_done"]
+      interval: 5s
+      timeout: 5s
+      retries: 240
+      start_period: 10s
+    restart: unless-stopped
+
+  # API 服务 - FastAPI
+  api:
+    image: ghradar-api:9952
+    build:
+      context: ./server
+      args:
+        # 国内加速 (可选)
+        BASE_IMAGE: ${BASE_IMAGE:-python:3.12-slim}
+        PIP_INDEX: ${PIP_INDEX:-https://mirrors.aliyun.com/pypi/simple/}
+    container_name: ghradar-api-9952
+    environment:
+      # 服务基本配置
+      GH_HOST: 0.0.0.0
+      GH_PORT: ${GH_PORT:-9951}
+      GH_DEBUG: "true"
+      
+      # 数据库连接
+      GH_DB_HOST: db
+      GH_DB_PORT: 5432
+      GH_DB_NAME: ${GH_DB_NAME:-github}
+      GH_DB_USER: ${GH_DB_USER:-postgres}
+      GH_DB_PASSWORD: ${GH_DB_PASSWORD:-postgres}
+      GH_DB_POOL_MIN: 2
+      GH_DB_POOL_MAX: 16
+      
+      # GitHub Token (从 .env 加载)
+      GH_GITHUB_TOKEN: ${GH_GITHUB_TOKEN:-}
+      GH_PROXY: ${GH_PROXY:-}
+      
+      # 采集与调度
+      GH_CONCURRENCY: 6
+      GH_SCHEDULER_ENABLED: "true"
+      
+      # 管理员配置 (从 .env 加载)
+      GH_ADMIN_USER: ${GH_ADMIN_USER:-github}
+      GH_ADMIN_PASSWORD: ${GH_ADMIN_PASSWORD:-github}
+      GH_AUTH_SECRET: ${GH_AUTH_SECRET:-}
+      GH_BOOTSTRAP: "true"
+      SEED_DIR: /seed
+      
+      # 环境
+      TZ: Asia/Shanghai
+      PYTHONDONTWRITEBYTECODE: "1"
+    
+    # 网络配置
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    
+    # 用户权限 (NFS 挂载时使用)
+    user: "${GH_UID:-1000}:${GH_GID:-1000}"
+    
+    # 停止宽限时间 (3 秒兜底)
+    stop_grace_period: 3s
+    
+    volumes:
+      # 种子/建表脚本(启动钩子要用)
+      - ./docs/sql:/seed:ro
+      # 前端资源挂载 (改动即生效)
+      - ./server/web:/app/web:ro
+      # 后端代码挂载
+      - ./server/app:/app/app:ro
+      - ./server/tools:/app/tools:ro
+      # 配置持久化
+      - ./server/data:/app/data
+    
+    ports:
+      - "${GH_PORT:-9951}:${GH_PORT:-9951}"
+    
+    # 依赖: 只等容器启动，不等健康检查
+    depends_on:
+      db:
+        condition: service_started
+    
+    restart: unless-stopped
+
+# 数据卷
+volumes:
+  ghradar_pgdata_9952:

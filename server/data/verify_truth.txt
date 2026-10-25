@@ -1,0 +1,179 @@
+======================================================================
+REPO deepseek-ai/deepseek-harness
+raw items=10
+raw[0] keys=['days', 'total', 'week']
+raw[0].days type=list len=4 elem0={'day': '2026-08-13', 'count': 74068}
+_to_weeks: weeks=10 days=62
+days[0]={'date': '2026-08-13', 'count': 74068, 'stars': 74068}
+days with stars>0: 62 / 62
+api weeks=10 db weeks=9
+week          api_total  db_weekly  api_d   db_d
+2026-08-10       138689     138715      4      4   <== MISMATCH
+2026-08-17        48779      48795      7      7   <== MISMATCH
+2026-08-24        16107      16111      7      7   <== MISMATCH
+2026-08-31         9265       9274      7      7   <== MISMATCH
+2026-09-07         8853       8856      7      7   <== MISMATCH
+2026-09-14         8792       8794      7      7   <== MISMATCH
+2026-09-21         6711       6716      7      7   <== MISMATCH
+2026-09-28         5764       5769      7      7   <== MISMATCH
+2026-10-05         4730       4699      7      7   <== MISMATCH
+2026-10-12         1326          -      2      -   <== MISMATCH
+mismatched weeks: 10
+======================================================================
+REPO NousResearch/hermes-agent
+raw items=31
+raw[0] keys=['days', 'total', 'week']
+raw[0].days type=list len=1 elem0={'day': '2026-03-22', 'count': 669}
+_to_weeks: weeks=31 days=206
+days[0]={'date': '2026-03-22', 'count': 669, 'stars': 669}
+days with stars>0: 206 / 206
+api weeks=31 db weeks=30
+week          api_total  db_weekly  api_d   db_d
+2026-03-16          669        669      1      1 
+2026-03-23         6511       6514      7      7   <== MISMATCH
+2026-03-30         9217       9219      7      7   <== MISMATCH
+2026-04-06        43053      43065      7      7   <== MISMATCH
+2026-04-13        31469      31476      7      7   <== MISMATCH
+2026-04-20        15741      15747      7      7   <== MISMATCH
+2026-04-27        12436      12438      7      7   <== MISMATCH
+2026-05-04        11466      11473      7      7   <== MISMATCH
+2026-05-11        12075      12078      7      7   <== MISMATCH
+2026-05-18        10848      10849      7      7   <== MISMATCH
+2026-05-25         9006       9007      7      7   <== MISMATCH
+2026-06-01        11324      11326      7      7   <== MISMATCH
+2026-06-08         7457       7457      7      7 
+2026-06-15         5575       5576      7      7   <== MISMATCH
+2026-06-22         5994       5995      7      7   <== MISMATCH
+2026-06-29         4785       4787      7      7   <== MISMATCH
+2026-07-06         4180       4180      7      7 
+2026-07-13         3628       3628      7      7 
+2026-07-20         3762       3762      7      7 
+2026-07-27         3574       3577      7      7   <== MISMATCH
+2026-08-03         3726       3729      7      7   <== MISMATCH
+2026-08-10         3838       3839      7      7   <== MISMATCH
+2026-08-17         3806       3807      7      7   <== MISMATCH
+2026-08-24         3573       3576      7      7   <== MISMATCH
+2026-08-31         4220       4221      7      7   <== MISMATCH
+2026-09-07         2771       2775      7      7   <== MISMATCH
+2026-09-14         2459       2460      7      7   <== MISMATCH
+2026-09-21         2200       2203      7      7   <== MISMATCH
+2026-09-28         1936       1937      7      7   <== MISMATCH
+2026-10-05         2089       2080      7      7   <== MISMATCH
+2026-10-12          700          -      2      -   <== MISMATCH
+mismatched weeks: 26
+======================================================================
+REPO mattpocock/skills
+raw items=31
+raw[0] keys=['days', 'total', 'week']
+raw[0].days type=list len=1 elem0={'day': '2026-03-22', 'count': 233}
+_to_weeks: weeks=31 days=206
+days[0]={'date': '2026-03-22', 'count': 233, 'stars': 233}
+days with stars>0: 206 / 206
+api weeks=31 db weeks=30
+week          api_total  db_weekly  api_d   db_d
+2026-03-16          233        233      1      1 
+2026-03-23         1902       1905      7      7   <== MISMATCH
+2026-03-30         1373       1373      7      7 
+2026-04-06         2107       2107      7      7 
+2026-04-13         1987       1987      7      7 
+2026-04-20         8572       8577      7      7   <== MISMATCH
+2026-04-27        31357      31363      7      7   <== MISMATCH
+2026-05-04        12145      12145      7      7 
+2026-05-11        19762      19768      7      7   <== MISMATCH
+2026-05-18        14004      14008      7      7   <== MISMATCH
+2026-05-25         9336       9342      7      7   <== MISMATCH
+2026-06-01         7377       7378      7      7   <== MISMATCH
+2026-06-08         8368       8371      7      7   <== MISMATCH
+2026-06-15        11152      11156      7      7   <== MISMATCH
+2026-06-22         9439       9441      7      7   <== MISMATCH
+2026-06-29         8114       8116      7      7   <== MISMATCH
+2026-07-06         9503       9505      7      7   <== MISMATCH
+2026-07-13        10677      10683      7      7   <== MISMATCH
+2026-07-20        12308      12310      7      7   <== MISMATCH
+2026-07-27        10266      10269      7      7   <== MISMATCH
+2026-08-03        11437      11443      7      7   <== MISMATCH
+2026-08-10         8133       8135      7      7   <== MISMATCH
+2026-08-17        14861      14865      7      7   <== MISMATCH
+2026-08-24         7965       7973      7      7   <== MISMATCH
+2026-08-31        13141      13145      7      7   <== MISMATCH
+2026-09-07         6502       6504      7      7   <== MISMATCH
+2026-09-14         5278       5279      7      7   <== MISMATCH
+2026-09-21         4346       4349      7      7   <== MISMATCH
+2026-09-28         5737       5741      7      7   <== MISMATCH
+2026-10-05        10916      10842      7      7   <== MISMATCH
+2026-10-12         3115          -      2      -   <== MISMATCH
+mismatched weeks: 26
+======================================================================
+REPO odysseus-dev/odysseus
+raw items=21
+raw[0] keys=['days', 'total', 'week']
+raw[0].days type=list len=1 elem0={'day': '2026-05-31', 'count': 10233}
+_to_weeks: weeks=21 days=136
+days[0]={'date': '2026-05-31', 'count': 10233, 'stars': 10233}
+days with stars>0: 136 / 136
+api weeks=21 db weeks=20
+week          api_total  db_weekly  api_d   db_d
+2026-05-25        10233      10233      1      1 
+2026-06-01        50397      50407      7      7   <== MISMATCH
+2026-06-08         8931       8936      7      7   <== MISMATCH
+2026-06-15         4724       4727      7      7   <== MISMATCH
+2026-06-22         3260       3260      7      7 
+2026-06-29         2001       2001      7      7 
+2026-07-06         1616       1616      7      7 
+2026-07-13          855        856      7      7   <== MISMATCH
+2026-07-20          862        862      7      7 
+2026-07-27          784        786      7      7   <== MISMATCH
+2026-08-03          563        564      7      7   <== MISMATCH
+2026-08-10          508        507      7      7   <== MISMATCH
+2026-08-17          698        699      7      7   <== MISMATCH
+2026-08-24          576        576      7      7 
+2026-08-31          416        416      7      7 
+2026-09-07          359        359      7      7 
+2026-09-14          312        312      7      7 
+2026-09-21          291        291      7      7 
+2026-09-28         1999       1999      7      7 
+2026-10-05         3495       3470      7      7   <== MISMATCH
+2026-10-12          432          -      2      -   <== MISMATCH
+mismatched weeks: 10
+======================================================================
+REPO VoltAgent/awesome-design-md
+raw items=29
+raw[0] keys=['days', 'total', 'week']
+raw[0].days type=list len=6 elem0={'day': '2026-03-31', 'count': 7}
+_to_weeks: weeks=29 days=197
+days[0]={'date': '2026-03-31', 'count': 7, 'stars': 7}
+days with stars>0: 197 / 197
+api weeks=29 db weeks=28
+week          api_total  db_weekly  api_d   db_d
+2026-03-30        16616      16617      6      6   <== MISMATCH
+2026-04-06        28877      28883      7      7   <== MISMATCH
+2026-04-13        13869      13874      7      7   <== MISMATCH
+2026-04-20         5517       5520      7      7   <== MISMATCH
+2026-04-27         4316       4318      7      7   <== MISMATCH
+2026-05-04         4668       4668      7      7 
+2026-05-11         5292       5292      7      7 
+2026-05-18         3225       3225      7      7 
+2026-05-25         2585       2585      7      7 
+2026-06-01         2128       2129      7      7   <== MISMATCH
+2026-06-08         2010       2011      7      7   <== MISMATCH
+2026-06-15         1877       1877      7      7 
+2026-06-22         2078       2079      7      7   <== MISMATCH
+2026-06-29         1938       1939      7      7   <== MISMATCH
+2026-07-06         5414       5416      7      7   <== MISMATCH
+2026-07-13         1898       1897      7      7   <== MISMATCH
+2026-07-20         1603       1604      7      7   <== MISMATCH
+2026-07-27         1418       1419      7      7   <== MISMATCH
+2026-08-03         1469       1469      7      7 
+2026-08-10         1390       1392      7      7   <== MISMATCH
+2026-08-17         1176       1177      7      7   <== MISMATCH
+2026-08-24         1952       1954      7      7   <== MISMATCH
+2026-08-31         2700       2702      7      7   <== MISMATCH
+2026-09-07         1286       1287      7      7   <== MISMATCH
+2026-09-14         1203       1205      7      7   <== MISMATCH
+2026-09-21         1519       1520      7      7   <== MISMATCH
+2026-09-28         1219       1219      7      7 
+2026-10-05         1123       1068      7      7   <== MISMATCH
+2026-10-12          661          -      2      -   <== MISMATCH
+mismatched weeks: 22
+
+RATE: {"remaining": 4995, "limit": 5000, "used": 5, "reset_at": "2026-10-14T02:53:49+00:00", "reset_in_s": 3595}

@@ -1,0 +1,22 @@
+# 前端静态资源
+web/
+# 运行期产物
+data/llm_config.json
+readme/*
+!readme/.gitkeep
+# 本地环境变量
+.env
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+# 依赖与日志
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# 编辑器
+.idea/
+.vscode/
+.DS_Store
