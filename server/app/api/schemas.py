@@ -121,7 +121,6 @@ class ProviderReq(BaseModel):
     api_key: Optional[str] = None
     api_prefix: str = "/v1"
     headers: Optional[dict] = None
-    proxy: Optional[str] = None
     timeout_s: int = 120
     max_retries: int = 2
     enabled: bool = True

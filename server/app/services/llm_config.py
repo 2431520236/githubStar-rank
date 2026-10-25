@@ -93,7 +93,6 @@ def add_provider(payload: dict) -> dict:
             "api_key": payload.get("api_key", ""),
             "api_prefix": payload.get("api_prefix", "/v1"),
             "headers": payload.get("headers") or {},
-            "proxy": payload.get("proxy", ""),
             "timeout_s": int(payload.get("timeout_s") or 120),
             "max_retries": int(payload.get("max_retries") or 2),
             "enabled": bool(payload.get("enabled", True)),
@@ -129,7 +128,7 @@ def update_provider(pid: int, payload: dict) -> Optional[dict]:
         for p in data["providers"]:
             if int(p["id"]) != int(pid):
                 continue
-            for k in ("name", "provider_type", "base_url", "api_prefix", "headers", "proxy",
+            for k in ("name", "provider_type", "base_url", "api_prefix", "headers",
                       "remark"):
                 if k in payload and payload[k] is not None:
                     p[k] = payload[k]
@@ -267,11 +266,6 @@ def _headers(prov: dict) -> dict:
     return h
 
 
-def _proxies(prov: dict) -> Optional[dict]:
-    px = prov.get("proxy")
-    return {"http": px, "https": px} if px else None
-
-
 def resolve_provider(payload: dict) -> dict:
     """把「前端传入的配置」与「已保存的供应商」合并。
 
@@ -305,7 +299,7 @@ def fetch_remote_models(provider_id: int) -> dict:
 def probe_models(prov: dict) -> dict:
     url = _join(prov.get("base_url"), prov.get("api_prefix", "/v1"), "/models")
     try:
-        r = requests.get(url, headers=_headers(prov), proxies=_proxies(prov),
+        r = requests.get(url, headers=_headers(prov),
                          timeout=int(prov.get("timeout_s") or 60), verify=False)
         if r.status_code >= 400:
             return {"ok": False, "error": f"HTTP {r.status_code}: {r.text[:200]}", "models": []}
@@ -341,7 +335,7 @@ def probe_chat(prov: dict, model: Optional[str] = None) -> dict:
                    "messages": [{"role": "user", "content": "ping"}], "max_tokens": 16}
     t0 = _t.time()
     try:
-        r = requests.post(url, headers=_headers(prov), json=payload, proxies=_proxies(prov),
+        r = requests.post(url, headers=_headers(prov), json=payload,
                           timeout=int(prov.get("timeout_s") or 60), verify=False)
     except Exception as e:  # noqa: BLE001
         return {"ok": False, "error": str(e), "url": url, "protocol": path}

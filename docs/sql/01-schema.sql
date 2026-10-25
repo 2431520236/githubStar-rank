@@ -125,7 +125,6 @@ CREATE TABLE public.gh_llm_provider (
     api_key text,
     api_prefix text DEFAULT ''::text,
     headers jsonb DEFAULT '{}'::jsonb,
-    proxy text,
     timeout_s integer DEFAULT 120,
     max_retries integer DEFAULT 2,
     enabled boolean DEFAULT true,

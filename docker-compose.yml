@@ -67,7 +67,6 @@ services:
       
       # GitHub Token (从 .env 加载)
       GH_GITHUB_TOKEN: ${GH_GITHUB_TOKEN:-}
-      GH_PROXY: ${GH_PROXY:-}
       
       # 采集与调度
       GH_CONCURRENCY: 6
