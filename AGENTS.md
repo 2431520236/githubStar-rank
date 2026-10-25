@@ -7,6 +7,10 @@
 自托管的 GitHub 榜单大屏：**FastAPI + PostgreSQL 15 + Docker Compose**，前端 Vue 3 零构建。
 同步仓库 star 历史 → 算日/周/月/总榜 → 用自配模型生成中文概要 → 暗色数据大屏展示。
 
+- **对外仓库**：<https://github.com/2431520236/githubStar-rank>（public）
+- **在线演示**：<https://git.ldquanyi.cn/>（同一套页面的对外入口）
+- 注：GitHub 用户名 `xiaosi` 已被他人占用，**无法**把仓库改成 `xiaosi/...` 形式
+
 ## 2. 文档索引
 
 | 文档 | 内容 |
