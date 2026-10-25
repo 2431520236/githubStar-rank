@@ -35,6 +35,13 @@ curl -s localhost:9951/api/stats/screen | grep -o '"history_done":[0-9]*'
 curl -s localhost:9952/api/stats/screen | grep -o '"history_done":[0-9]*'   # 9951=4084 / 9952=0 → 各读各库
 ```
 
+## 公开与合规红线（2026-10-26 用户强制）
+
+- 本仓库对外公开（github.com/2431520236/githubstar-rank）。**禁止出现任何 `zte` 相关字样**（域名、路径、代理、注释均含）、**禁止出现任何 `10.192.*` 内网地址**。改动后必须复扫：
+  `git ls-files -z | xargs -0 grep -lIi 'zte'` 与 `grep -rIil '10\.192\.[0-9]'`，必须 0 命中。
+- 代理是允许的功能，但取值默认留空；**代理策略：显式 `GH_PROXY` > 系统/环境变量（`HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY`/`NO_PROXY`）> 直连**。实现见 `server/app/collectors/github_client.py`（`trust_env` 保持默认 True，显式配置写入 `session.proxies`）。
+- 数据库只允许改配置表（`gh_app_setting` 等）；**业务表（`gh_repo`/`gh_repo_star_daily`/`gh_repo_star_weekly`/`gh_rank_snapshot`/`gh_stat_period`）严禁 DROP/DELETE/UPDATE**。
+
 ## 备份与恢复
 
 
