@@ -1,7 +1,7 @@
 """GitHub 客户端 + 全局限速感知。
 
 对应手册《05 · 采集器与多线程机制》2. github_client.py。
-要点:每线程独立 Session 且 trust_env=False;403/429 退避;404 不算错误。
+要点:每线程独立 Session;代理默认跟随系统/环境变量,显式配置 GH_PROXY 优先;403/429 退避;404 不算错误。
 """
 import logging
 import random
@@ -114,7 +114,10 @@ class GitHubClient:
         s = getattr(self._local, "session", None)
         if s is None:
             s = requests.Session()
-            s.trust_env = False  # 屏蔽环境 all_proxy 干扰
+            # 代理策略:显式 GH_PROXY > 系统/环境变量(HTTP_PROXY/HTTPS_PROXY/ALL_PROXY/NO_PROXY) > 直连。
+            # trust_env 保持默认 True,环境变量里有代理由 requests 自动使用,没有则直连。
+            if self.proxy:
+                s.proxies.update({"http": self.proxy, "https": self.proxy})
             s.headers.update({
                 "Accept": "application/vnd.github+json",
                 "X-GitHub-Api-Version": "2022-11-28",
@@ -124,9 +127,6 @@ class GitHubClient:
                 s.headers["Authorization"] = f"Bearer {self.token}"
             self._local.session = s
         return s
-
-    def _proxies(self) -> Optional[dict]:
-        return {"http": self.proxy, "https": self.proxy} if self.proxy else None
 
     def raw(self, method: str, url: str, params: Optional[dict] = None,
             max_retries: Optional[int] = None, absolute: bool = True,
@@ -148,7 +148,7 @@ class GitHubClient:
         for attempt in range(max(1, retries)):
             try:
                 r = self.session.request(method, url, params=params, timeout=cfg.REQUEST_TIMEOUT,
-                                         proxies=self._proxies(), verify=False, headers=headers)
+                                         verify=False, headers=headers)
             except Exception as e:  # noqa: BLE001
                 if attempt < retries - 1:
                     time.sleep(min(5 * (2 ** attempt), 60) + random.uniform(0, 1))
@@ -192,8 +192,7 @@ class GitHubClient:
         for name in ("README.md", "README.MD", "README.rst", "readme.md", "README"):
             url = f"{RAW}/{full_name}/{branch}/{name}"
             try:
-                r = self.session.get(url, timeout=cfg.REQUEST_TIMEOUT, proxies=self._proxies(),
-                                     verify=False)
+                r = self.session.get(url, timeout=cfg.REQUEST_TIMEOUT, verify=False)
                 if r.status_code == 200 and r.text:
                     return r.text
             except Exception:  # noqa: BLE001
