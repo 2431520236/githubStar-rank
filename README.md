@@ -93,7 +93,7 @@ GitHub 每天都在冒新项目，但「**最近谁在涨**」这件事没有现
 ## 四、快速开始
 
 ```bash
-git clone https://github.com/2431520236/githubStar-rank.git
+git clone https://github.com/ai-xiaosi/githubStar-rank.git
 cd githubStar-rank
 cp .env.example .env          # 填 GH_GITHUB_TOKEN（可选）、GH_ADMIN_PASSWORD
 docker compose up -d          # 起 PostgreSQL + API；首次启动自动建表
