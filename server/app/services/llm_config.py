@@ -17,6 +17,40 @@ _LOCK = threading.RLock()
 _JSON_PATH = cfg.DATA_DIR / "llm_config.json"
 
 
+def ensure_bootstrap_init() -> bool:
+    """模型数据初始化: **已存在供应商则跳过**（查询存在即跳过），否则从环境变量建默认供应商。
+
+    环境变量（.env.<环境> 提供）:
+      GH_LLM_BASE_URL / GH_LLM_API_KEY / GH_LLM_MODEL / GH_LLM_API_PREFIX(默认 /v1)
+    返回 True = 本次做了初始化。
+    """
+    import os
+    with _LOCK:
+        data = _load()
+        if data["providers"]:
+            return False  # 已有配置, 跳过
+        base = (os.getenv("GH_LLM_BASE_URL") or "").strip()
+        key = (os.getenv("GH_LLM_API_KEY") or "").strip()
+        model = (os.getenv("GH_LLM_MODEL") or "").strip()
+        if not (base and key and model) or key.startswith("sk-placeholder"):
+            return False  # 环境未配 LLM, 不初始化空壳
+        data["seq"] = {"provider": 1, "model": 1}
+        data["providers"] = [{
+            "id": 1, "name": "默认供应商", "provider_type": "openai_response",
+            "base_url": base, "api_key": key,
+            "api_prefix": (os.getenv("GH_LLM_API_PREFIX") or "/v1").strip(),
+            "headers": {}, "proxy": "",
+            "timeout_s": int(os.getenv("GH_LLM_TIMEOUT_S") or 120),
+            "max_retries": int(os.getenv("GH_LLM_MAX_RETRIES") or 2),
+            "enabled": True, "is_default": True, "remark": "启动时由环境变量初始化",
+            "models": [{"id": 1, "model_name": model, "display_name": model,
+                        "model_type": "chat", "max_tokens": 4096, "temperature": 0.3,
+                        "enabled": True, "is_default": True}],
+        }]
+        _save(data)
+        return True
+
+
 def _blank() -> dict:
     return {"version": 1, "updated_at": None, "seq": {"provider": 0, "model": 0}, "providers": []}
 

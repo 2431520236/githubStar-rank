@@ -1,12 +1,15 @@
 # GitHub 飙升雷达 · Docker Compose
-# 一键启动：docker compose up -d
-# 端口：API 9951（可用 .env 的 GH_PORT 覆盖）、PostgreSQL 54321（GH_DB_PORT_HOST）
+# 一键启动：./up.sh [环境名]   环境名 = .env.<名字>，不传默认 local
+#   local = 本地开发环境（端口 9952，不提交 GitHub）
+#   dev   = 发布/演示环境（端口 9951）
+# 端口、数据库口令、GitHub Token、LLM 初始化等全部由 .env.<环境> 提供。
+# DB 种子导入只发生在**数据卷为空**时（PostgreSQL 官方 entrypoint 语义 = 数据存在自动跳过）。
 
 services:
   # 数据库 - PostgreSQL 15
   db:
     image: postgres:15
-    container_name: ghradar-db-9952
+    container_name: ghradar-db-${GH_ENV_NAME}
     command: >
       postgres
       -c shared_buffers=1GB
@@ -23,8 +26,12 @@ services:
       TZ: Asia/Shanghai
       PGTZ: Asia/Shanghai
     volumes:
-      # 持久化数据卷（删卷 = 删库，务必先备份）
-      - ghradar_pgdata_9952:/var/lib/postgresql/data
+      # 持久化数据卷（删卷 = 删库，务必先备份）——按环境隔离:
+      #   local → 项目 githubstar9952 (目录默认名) + 本卷 = 现有卷
+      #           githubstar9952_ghradar_pgdata_9952, 数据在, 不触发种子导入
+      #   dev   → 项目 githubstar-dev + 新建空卷 githubstar-dev_ghradar_pgdata_9951,
+      #           首次启动由 initdb 导入种子 (卷非空自动跳过)
+      - ghradar_pgdata_${GH_ENV_NAME}:/var/lib/postgresql/data
       # SQL 资料包（只读）
       - ./docs/sql:/seed:ro
       # 首次初始化脚本：容器**只在数据卷为空时**执行一次
@@ -42,20 +49,20 @@ services:
 
   # API 服务 - FastAPI
   api:
-    image: ghradar-api:9952
+    image: ghradar-api:${GH_ENV_NAME}
     build:
       context: ./server
       args:
         # 国内加速 (可选)
         BASE_IMAGE: ${BASE_IMAGE:-python:3.12-slim}
         PIP_INDEX: ${PIP_INDEX:-https://mirrors.aliyun.com/pypi/simple/}
-    container_name: ghradar-api-9952
+    container_name: ghradar-api-${GH_ENV_NAME}
     environment:
       # 服务基本配置
       GH_HOST: 0.0.0.0
       GH_PORT: ${GH_PORT:-9951}
-      GH_DEBUG: "true"
-      
+      GH_DEBUG: ${GH_DEBUG:-true}
+
       # 数据库连接
       GH_DB_HOST: db
       GH_DB_PORT: 5432
@@ -64,36 +71,45 @@ services:
       GH_DB_PASSWORD: ${GH_DB_PASSWORD:-postgres}
       GH_DB_POOL_MIN: 2
       GH_DB_POOL_MAX: 16
-      
-      # GitHub Token (从 .env 加载)
+
+      # GitHub Token (从 .env.<环境> 加载)
       GH_GITHUB_TOKEN: ${GH_GITHUB_TOKEN:-}
       GH_PROXY: ${GH_PROXY:-}
-      
+
       # 采集与调度
       GH_CONCURRENCY: 6
-      GH_SCHEDULER_ENABLED: "true"
-      
-      # 管理员配置 (从 .env 加载)
+      GH_SCHEDULER_ENABLED: ${GH_SCHEDULER_ENABLED:-true}
+
+      # 管理员配置 (从 .env.<环境> 加载)
       GH_ADMIN_USER: ${GH_ADMIN_USER:-github}
       GH_ADMIN_PASSWORD: ${GH_ADMIN_PASSWORD:-github}
       GH_AUTH_SECRET: ${GH_AUTH_SECRET:-}
       GH_BOOTSTRAP: "true"
       SEED_DIR: /seed
-      
+
+      # LLM 模型初始化 (启动时: server/data/llm_config.json 已有供应商 → 跳过;
+      # 为空且下面变量齐全 → 建默认供应商。见 llm_config.ensure_bootstrap_init)
+      GH_LLM_BASE_URL: ${GH_LLM_BASE_URL:-}
+      GH_LLM_API_KEY: ${GH_LLM_API_KEY:-}
+      GH_LLM_API_PREFIX: ${GH_LLM_API_PREFIX:-/v1}
+      GH_LLM_MODEL: ${GH_LLM_MODEL:-}
+      GH_LLM_TIMEOUT_S: ${GH_LLM_TIMEOUT_S:-120}
+      GH_LLM_MAX_RETRIES: ${GH_LLM_MAX_RETRIES:-2}
+
       # 环境
       TZ: Asia/Shanghai
       PYTHONDONTWRITEBYTECODE: "1"
-    
+
     # 网络配置
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    
+
     # 用户权限 (NFS 挂载时使用)
     user: "${GH_UID:-1000}:${GH_GID:-1000}"
-    
+
     # 停止宽限时间 (3 秒兜底)
     stop_grace_period: 3s
-    
+
     volumes:
       # 种子/建表脚本(启动钩子要用)
       - ./docs/sql:/seed:ro
@@ -102,19 +118,23 @@ services:
       # 后端代码挂载
       - ./server/app:/app/app:ro
       - ./server/tools:/app/tools:ro
-      # 配置持久化
+      # 配置持久化 (llm_config.json 在此；文件已存在则跳过模型初始化)
       - ./server/data:/app/data
-    
+
     ports:
       - "${GH_PORT:-9951}:${GH_PORT:-9951}"
-    
+
     # 依赖: 只等容器启动，不等健康检查
     depends_on:
       db:
         condition: service_started
-    
+
     restart: unless-stopped
 
-# 数据卷
+# 数据卷 —— 按环境隔离 (GH_ENV_NAME 由 up.sh/环境文件提供):
+#   local (GH_ENV_NAME=9952): -p githubstar9952 下即现有卷
+#           githubstar9952_ghradar_pgdata_9952 → 同名卷已存在则直接复用, 不清空不重导
+#   dev   (GH_ENV_NAME=9951): -p githubstar-dev 下新建空卷, 首启由 initdb 导种子
 volumes:
+  ghradar_pgdata_9951:
   ghradar_pgdata_9952:

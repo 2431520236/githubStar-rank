@@ -2,6 +2,10 @@
 .env
 .env.*
 !.env.example
+
+# ---- 本地环境(local 环境整体不提交 GitHub) ----
+.env.local
+.env.dev
 server/data/llm_config.json
 server/data/*.bak
 *.pem
@@ -31,6 +35,8 @@ Thumbs.db
 # ---- 本地测试部署目录（隔离实例，不属于源码） ----
 test-deploy/
 githubstar-9952/
+githubstar/
+up.log
 
 # ---- 大数据包 / 备份（GitHub 单文件 100MB 硬限制）----
 backups/

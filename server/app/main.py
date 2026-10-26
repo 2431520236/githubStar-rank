@@ -112,6 +112,15 @@ async def lifespan(app: FastAPI):
         log.info("数据库连接成功: %s", db.health())
     except Exception as e:  # noqa: BLE001
         log.error("数据库连接失败(服务继续启动,接口会返回错误): %s", e)
+    # 模型配置初始化: llm_config.json 已有供应商则跳过, 否则从环境变量建默认供应商
+    try:
+        from .services import llm_config
+        if llm_config.ensure_bootstrap_init():
+            log.info("LLM 配置已从环境变量初始化 (GH_LLM_BASE_URL/GH_LLM_MODEL)")
+        else:
+            log.info("LLM 配置已存在或未提供环境变量, 跳过初始化")
+    except Exception:  # noqa: BLE001
+        log.warning("LLM 配置初始化失败", exc_info=True)
     # 启动内置调度
     try:
         from .services import scheduler
