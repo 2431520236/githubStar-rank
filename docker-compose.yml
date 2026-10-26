@@ -134,7 +134,10 @@ services:
 # 数据卷 —— 按环境隔离 (GH_ENV_NAME 由 up.sh/环境文件提供):
 #   local (GH_ENV_NAME=9952): -p githubstar9952 下即现有卷
 #           githubstar9952_ghradar_pgdata_9952 → 同名卷已存在则直接复用, 不清空不重导
-#   dev   (GH_ENV_NAME=9951): -p githubstar-dev 下新建空卷, 首启由 initdb 导种子
+#   dev   (GH_ENV_NAME=9951): 外部卷 = 原 9951 线上数据卷 githubstar_ghradar_pgdata
+#           (合并承接发布环境的数据, 不重导种子; ⚠️ 旧 9951 栈必须先 down, 禁止双实例同卷)
 volumes:
-  ghradar_pgdata_9951:
   ghradar_pgdata_9952:
+  ghradar_pgdata_9951:
+    external: true
+    name: githubstar_ghradar_pgdata
