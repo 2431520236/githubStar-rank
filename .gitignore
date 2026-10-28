@@ -43,3 +43,6 @@ backups/
 docs/sql/20-*.sql
 docs/sql/30-*.sql
 docs/sql/35-*.sql
+
+# ---- 内部代理文档(含容器名/端口/卷拓扑, 不对外公开) ----
+AGENTS.md
