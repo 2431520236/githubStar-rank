@@ -52,7 +52,7 @@ GitHub 每天都在冒新项目，但「**最近谁在涨**」这件事没有现
 | <img src="docs/截图/reg_detail.png" width="430"> | <img src="docs/截图/reg_system.png" width="430"> |
 | **③ 项目详情** —— star 增长曲线 · AI 中文概要 · 版本迭代备注 | **④ 采集与调度** —— 补全详情 / 采集 star 历史 / 缺口一键补齐 |
 
-> 点任意图片或访问 **[https://git.ldquanyi.cn/](https://git.ldquanyi.cn/)** 亲自翻一遍。
+> 点任意图片或访问 <a href="https://git.ldquanyi.cn/" target="_blank" rel="noopener"><b>https://git.ldquanyi.cn/</b></a> 亲自翻一遍。
 
 ---
 
