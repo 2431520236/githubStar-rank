@@ -9,7 +9,7 @@
 
 > 💡 **全中文亮点**：榜单页全中文 ｜ 每个项目都有 AI 中文简介（120–250 字）｜ 中文周榜 / 中文月榜 / 中文飙升榜 ｜ 英文项目不用啃 README，悬停即看中文
 
-**[🌐 在线演示 → git.ldquanyi.cn](https://git.ldquanyi.cn/)**
+<a href="https://git.ldquanyi.cn/" target="_blank" rel="noopener">🌐 <b>在线演示 → git.ldquanyi.cn</b></a>
 
 `Docker` 一条命令自托管 ｜ 数据全部落在你自己的 PostgreSQL ｜ 前端零构建、离线可用
 
@@ -88,7 +88,7 @@ GitHub 每天都在冒新项目，但「**最近谁在涨**」这件事没有现
 | 24 | [`rohitg00/ai-engineering-from-scratch`](https://github.com/rohitg00/ai-engineering-from-scratch) | AI Engineering from Scratch 是一套从零开始学习 AI 工程的开放课程，用 523 节课、20 个阶段、约 342 小时的内容，把数学基础、机器学习、大模型应用、智能体、工具与协议等主题串成一条可执行的路径，示例语言覆盖 Python、TypeScript、Rust 和 Julia。它想弥合的是会用 AI 工具与能专业地做 AI 工程之间的落差：每节课都会产出一个可复用的成果物，可能是一段提示词、一项技能、一个智能体或一台 MCP 服务器。学习者可以按自己的目标挑选入口，不必通读全部内容，项目也提供学习路径与定位测评帮忙找到起点，并附带面向 Claude 与 MCP 认证的备考材料，以 MIT 协议免费开源。 |
 | 25 | [`koala73/worldmonitor`](https://github.com/koala73/worldmonitor) | World Monitor 是一个实时全球情报仪表盘，把新闻聚合、地缘政治监测和基础设施追踪整合进统一的态势感知界面，帮助关注国际局势、市场与技术动态的人快速掌握正在发生什么。它对全球及区域新闻源做聚合，并用 AI 生成摘要简报，同时提供 3D 地球与 WebGL 平面地图双引擎，共享同一套图层目录。项目内置跨国不稳定性指数、金融雷达，以及对军事、经济、灾害和升级信号的跨流关联分析。它支持用 Ollama 本地运行、无需 API 密钥，也可从同一套代码生成世界、科技、财经、大宗商品、能源等多个站点变体，并提供 macOS、Windows、Linux 的桌面应用与多语言界面。 |
 
-> 榜单每天都在动，这里只是某一期的切片。想看实时数据，直接上 **[在线演示](https://git.ldquanyi.cn/)**。
+> 榜单每天都在动，这里只是某一期的切片。想看实时数据，直接上 <a href="https://git.ldquanyi.cn/" target="_blank" rel="noopener"><b>在线演示</b></a>。
 
 ---
 
